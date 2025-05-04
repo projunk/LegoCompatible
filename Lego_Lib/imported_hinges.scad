@@ -14,7 +14,7 @@ module drawHingeFingersConnected(prmColor2Fingers,prmColor3Fingers,prmAngle)
 {
     translate([getSize(2)+0.5*pitch,0,0])
     {
-        rotateObject([0,0,-tPlate/2],[0,prmAngle,0]) drawHingePlate2Fingers(prmColor2Fingers);
+        rotateObject([0,0,-hPlate/2],[0,prmAngle,0]) drawHingePlate2Fingers(prmColor2Fingers);
         mirror([1,0,0]) drawHingePlate3Fingers(prmColor3Fingers);
     }
 }

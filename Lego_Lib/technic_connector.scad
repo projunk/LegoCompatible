@@ -5,7 +5,7 @@ modelScale = 1.0;
 
 
 // printability corrections; values should be zero for real object dimensions 
-PRINTABLE = 1;
+PRINTABLE = 0;
 correction_r1 = PRINTABLE ? 0.15 : 0.0;
 correction_r2 = PRINTABLE ? -0.05 : 0.0;
 correction_offset_r2 = PRINTABLE ? 0.10 : 0.0;

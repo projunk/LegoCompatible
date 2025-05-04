@@ -7,7 +7,7 @@ easyPrintable = true;
 
 
 // printability corrections; values should be zero for real object dimensions 
-PRINTABLE = 1;
+PRINTABLE = 0;
 correction_r1 = PRINTABLE ? 0.05 : 0.0;
 correction_r2 = PRINTABLE ? 0.0 : 0.0;
 correction_offset_r2 = PRINTABLE ? 0.10 : 0.0;
@@ -248,10 +248,10 @@ module drawConnectorBottom()
 
 
 // parts
-//drawConnector();
+drawConnector();
 
 //drawConnectorTop();
-rotate([90,0,0]) drawConnectorBottom();
+//rotate([90,0,0]) drawConnectorBottom();
 
 
 

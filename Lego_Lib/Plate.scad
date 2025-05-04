@@ -1,50 +1,22 @@
 eps = 0.001;
 
-modelScale = 1.0;
+
+include <dimensions.scad>
+include <utils.scad>
+
 
 
 nr_length_units = 8;
 nr_width_units = 2;
-isSolidExternalPin = true;
-isSolidPin2 = true;
+echo("nr_length_units", nr_length_units);
+echo("nr_width_units", nr_width_units);
+isHollowExternalPin = false;
 addInnerWalls = true;
 addScrewHoles = false;
 
 
-// printability corrections; values should be zero for real object dimensions 
-PRINTABLE = 0;
-correction_t1 = PRINTABLE ? 0.05 : 0.0;
-
-
-
-unit_size = 7.8*modelScale;
-pitch = 8.0*modelScale;
-
-h1 = 3.2*modelScale; // height
-h2 = h1-1.0*modelScale; // inner height
-
-// pin1
-r1 = 6.5/2*modelScale;
-r2 = 4.8/2*modelScale;
-
-// pin2
-r3 = 3.2/2*modelScale;
-r4 = 1.6/2*modelScale;
-
-
-t1 = (1.5-correction_t1)*modelScale; // wall thickness
-t2 = 1.2*modelScale; // inner wall thickness
-
-
-length = nr_length_units*unit_size + (nr_length_units - 1) * (pitch - unit_size);
-width = nr_width_units*unit_size + (nr_width_units - 1) * (pitch - unit_size);
-echo("length", length);
-echo("width", width);
-
-
-h_pin = 1.7*modelScale;
-r_pin1 = 4.8/2*modelScale;
-r_pin2 = 3.2/2*modelScale;
+length = getSize(nr_length_units);
+width = getSize(nr_width_units);
 
 
 rScrewHole = 4.0/2/2.5;
@@ -53,52 +25,7 @@ rScrewHole = 4.0/2/2.5;
 
 module drawScrewHole()
 {
-    translate([0,0,-eps]) cylinder(h1+h_pin+2*eps,rScrewHole,rScrewHole,$fn=100*modelScale);
-}
-
-
-module drawExternalPinSolid()
-{
-	translate([0,0,h1-eps]) cylinder(h_pin+eps,r_pin1,r_pin1,$fn=100*modelScale);
-}
-
-
-module drawExternalPinHollow()
-{
-	translate([0,0,h1-eps]) 
-    {
-        difference()
-        {
-            cylinder(h_pin+eps,r_pin1,r_pin1,$fn=100*modelScale);
-            cylinder(h_pin+2*eps,r_pin2,r_pin2,$fn=100*modelScale);
-        }
-    }
-}
-
-
-module drawInternalPin1()
-{
-	difference()
-	{
-		translate([0,0,-eps]) cylinder(h1+eps,r1,r1,$fn=100*modelScale);
-		translate([0,0,-2*eps]) cylinder(h1+3*eps,r2,r2,$fn=100*modelScale);
-	}
-}
-
-
-module drawInternalPin2Hollow()
-{
-	difference()
-	{
-		translate([0,0,-eps]) cylinder(h1+eps,r3,r3,$fn=100*modelScale);
-		translate([0,0,-2*eps]) cylinder(h1+3*eps,r4,r4,$fn=100*modelScale);
-	}
-}
-
-
-module drawInternalPin2Solid()
-{
-	translate([0,0,-eps]) cylinder(h1+eps,r3,r3,$fn=100*modelScale);
+    translate([0,0,-eps]) cylinder(hPlate+hExternalPin+2*eps,rScrewHole,rScrewHole,$fn=100);
 }
 
 
@@ -114,7 +41,7 @@ module drawInnerWallsX()
                 {
                     union()
                     {
-                        translate([x*pitch-(pitch-unit_size)/2-t2/2,t1-eps,0]) cube([t2,width-2*t1+2*eps,h2+eps]);
+                        translate([x*pitch-(pitch-unit_size)/2-tInnerWall/2,tWall-eps,0]) cube([tInnerWall,width-2*tWall+2*eps,hInnerPlate+eps]);
                     }
                     union()
                     {
@@ -122,7 +49,7 @@ module drawInnerWallsX()
                         {
                             for (y = [1:nr_width_units-1]) 
                             {
-                                translate([x*pitch-(pitch-unit_size)/2,y*pitch-(pitch-unit_size)/2,-eps]) cylinder(h1+2*eps,r2,r2,$fn=100*modelScale);
+                                translate([x*pitch-(pitch-unit_size)/2,y*pitch-(pitch-unit_size)/2,-eps]) cylinder(hPlate+2*eps,riInternalPin,riInternalPin,$fn=100);
                             }
                         }
                     }
@@ -145,7 +72,7 @@ module drawInnerWallsY()
                 {
                     union()
                     {
-                        translate([t1-eps,y*pitch-(pitch-unit_size)/2-t2/2,0]) cube([length-2*t1+2*eps,t2,h2+eps]);
+                        translate([tWall-eps,y*pitch-(pitch-unit_size)/2-tInnerWall/2,0]) cube([length-2*tWall+2*eps,tInnerWall,hInnerPlate+eps]);
                     }
                     union()
                     {
@@ -153,7 +80,7 @@ module drawInnerWallsY()
                         {
                             for (x = [1:nr_length_units-1]) 
                             {
-                                translate([x*pitch-(pitch-unit_size)/2,y*pitch-(pitch-unit_size)/2,-eps]) cylinder(h1+2*eps,r2,r2,$fn=100*modelScale);
+                                translate([x*pitch-(pitch-unit_size)/2,y*pitch-(pitch-unit_size)/2,-eps]) cylinder(hPlate+2*eps,riInternalPin,riInternalPin,$fn=100);
                             }
                         }
                     }
@@ -164,67 +91,15 @@ module drawInnerWallsY()
 }
 
 
-module drawPlate() 
+module drawInternalPins()
 {
-	difference()
-	{
-		union()
-		{	
-			cube([length,width,h1]);
-		}
-		union()
-		{	
-			translate([t1,t1,-eps]) cube([length-2*t1,width-2*t1,h2+eps]);
-            
-            for (x = [1:nr_length_units])
-            {
-                for (y = [1:nr_width_units])
-                {	            
-                    if (addScrewHoles)
-                    {
-                        translate([x*pitch-pitch+unit_size/2,y*pitch-pitch+unit_size/2,0]) drawScrewHole();
-                    }
-                }
-            }            
-            
-		}
-	}
-
-	for (x = [1:nr_length_units])
-	{
-		for (y = [1:nr_width_units])
-		{	
-            difference()
-            {
-                union()
-                {
-                    if (isSolidExternalPin)
-                    {
-                        translate([x*pitch-pitch+unit_size/2,y*pitch-pitch+unit_size/2,0]) drawExternalPinSolid();
-                    }
-                    else
-                    {
-                        translate([x*pitch-pitch+unit_size/2,y*pitch-pitch+unit_size/2,0]) drawExternalPinHollow();
-                    }                        
-                }
-                union()
-                {
-                    if (addScrewHoles)
-                    {
-                        translate([x*pitch-pitch+unit_size/2,y*pitch-pitch+unit_size/2,0]) drawScrewHole();
-                    }
-                }
-            }
-		}
-	}
-
 	if ((nr_length_units > 1) && (nr_width_units > 1)) 
 	{
 		for (x = [1:nr_length_units-1])
 		{
 			for (y = [1:nr_width_units-1]) 
 			{	
-				translate([x*pitch-(pitch-unit_size)/2,y*pitch-(pitch-unit_size)/2,0]) drawInternalPin1();
+				translate([x*pitch-(pitch-unit_size)/2,y*pitch-(pitch-unit_size)/2,0]) drawInternalPin(hInnerPlate);
 			}
 		}
 	}
@@ -233,14 +108,7 @@ module drawPlate()
 	{
 		for (x = [1:nr_length_units-1])
 		{
-            if (isSolidPin2)
-            {
-                translate([x*pitch-(pitch-unit_size)/2,width/2,0]) drawInternalPin2Solid();
-            }
-            else
-            {
-                translate([x*pitch-(pitch-unit_size)/2,width/2,0]) drawInternalPin2Hollow();
-            }
+			translate([x*pitch-(pitch-unit_size)/2,width/2,0]) drawInternalPinSmall(hInnerPlate);
 		}
 	}
 
@@ -248,13 +116,64 @@ module drawPlate()
 	{
 		for (y = [1:nr_width_units-1])
 		{
-            if (isSolidPin2)
+			translate([length/2,y*pitch-(pitch-unit_size)/2,0]) drawInternalSmall(hInnerPlate);
+		}
+	}
+}
+
+
+module drawExternalPins()
+{
+	for (x = [1:nr_length_units])
+	{
+		for (y = [1:nr_width_units])
+		{	
+            difference()
             {
-                translate([length/2,y*pitch-(pitch-unit_size)/2,0]) drawInternalPin2Solid();
+                union()
+                {
+                    translate([x*pitch-pitch+unit_size/2,y*pitch-pitch+unit_size/2,hPlate]) drawExternalPin(isHollowExternalPin);
+                }
+                union()
+                {
+                    if (addScrewHoles)
+                    {    
+                        drawScrewHoles();
+                    }
+                }
             }
-            else
-            {      
-                translate([length/2,y*pitch-(pitch-unit_size)/2,0]) drawInternalPin2Hollow();
+		}
+	}
+}
+
+
+module drawScrewHoles()
+{
+	for (x = [1:nr_length_units])
+	{
+		for (y = [1:nr_width_units])
+		{	
+			translate([x*pitch-pitch+unit_size/2,y*pitch-pitch+unit_size/2,0]) drawScrewHole();
+		}
+	}
+}
+
+
+
+module drawPlate() 
+{
+	difference()
+	{
+		union()
+		{	
+			cube([length,width,hPlate]);
+		}
+		union()
+		{	
+			translate([tWall,tWall,-eps]) cube([length-2*tWall,width-2*tWall,hInnerPlate+eps]);
+            if (addScrewHoles)
+            {    
+                drawScrewHoles();
             }
 		}
 	}
@@ -264,9 +183,16 @@ module drawPlate()
         drawInnerWallsX();
         drawInnerWallsY();
     }
+	drawInternalPins();
+	drawExternalPins();    
 }
 
 
+
+// tests
+
+
+// parts
 drawPlate();
 
 

@@ -31,3 +31,9 @@ module drawMotorCyclePivot(prmColor)
 {
     colorEx(prmColor) importEx("MotorCyclePivot.stl");
 }    
+
+
+module drawDish(prmColor)
+{
+    colorEx(prmColor) importEx("Dish.stl");
+}    

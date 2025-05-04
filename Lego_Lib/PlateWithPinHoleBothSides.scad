@@ -51,12 +51,23 @@ smallSize = 3*max(length,width);
 
 module drawBearingHole()
 {
-    translate([0,0,offsetBearingZ]) rotate([0,90,0]) 
-    {
-        translate([0,0,ph1/2-ph2]) cylinder(ph2+eps,pr2,pr2,$fn=100*modelScale);
-        mirror([0,0,1]) translate([0,0,ph1/2-ph2]) cylinder(ph2+eps,pr2,pr2,$fn=100*modelScale);
-        cylinder(ph1+2*eps,pr1,pr1,$fn=100*modelScale,true);
-        cylinder(ph3,rBearing+eps,rBearing+eps,$fn=250*modelScale,true);
+	difference()
+	{
+		union()
+		{	 
+            translate([0,0,offsetBearingZ]) rotate([0,90,0]) 
+            {
+                translate([0,0,ph1/2-ph2]) cylinder(ph2+eps,pr2,pr2,$fn=100*modelScale);
+                mirror([0,0,1]) translate([0,0,ph1/2-ph2]) cylinder(ph2+eps,pr2,pr2,$fn=100*modelScale);
+                cylinder(ph1+2*eps,pr1,pr1,$fn=100*modelScale,true);
+                r = (width-2*t1)/2;
+                cylinder(ph3,r,r,$fn=250*modelScale,true);
+            }
+        }
+		union()
+		{
+            translate([-smallSize/2,-smallSize/2,h2]) cube([smallSize,smallSize,smallSize]);
+        }
     }
 }
 
