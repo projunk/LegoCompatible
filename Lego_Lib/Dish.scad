@@ -22,6 +22,8 @@ riSphere = roSphere-tSphere;
 offsetPinRadial = ro1-roExternalPin;
 offsetPinZ = 2.5;
 
+nrOfPins = 4;
+
 
 
 module drawDishEx()
@@ -34,14 +36,21 @@ module drawDishEx()
             translate([0,0,-ho1]) drawCampheredHollowCylinder(ho1+eps,ro1,ri,eps,250);
             translate([0,0,-ho1-ho2]) drawCampheredHollowCylinder(ho2+eps,ro2,ri,eps,250);  
             
-            translate([offsetPinRadial,0,-offsetPinZ]) drawCampheredHollowCylinder(hSphere+ho1+ho2,roExternalPin,riExternalPin,eps,100);
-            translate([-offsetPinRadial,0,-offsetPinZ]) drawCampheredHollowCylinder(hSphere+ho1+ho2,roExternalPin,riExternalPin,eps,100);
-            translate([0,offsetPinRadial,-offsetPinZ]) drawCampheredHollowCylinder(hSphere+ho1+ho2,roExternalPin,riExternalPin,eps,100);
-            translate([0,-offsetPinRadial,-offsetPinZ]) drawCampheredHollowCylinder(hSphere+ho1+ho2,roExternalPin,riExternalPin,eps,100);            
+            for (i = [0:nrOfPins-1]) 
+            {
+                angle = i/nrOfPins*360;
+                rotate([0,0,angle]) translate([offsetPinRadial,0,-offsetPinZ]) drawCampheredHollowCylinder(hSphere+ho1+ho2,roExternalPin,riExternalPin,eps,100);
+            }
         }
         union()
         {
             drawHollowCutOffSphere(roSphere+hSphere,roSphere,2*hSphere,250);
+            
+            for (i = [0:nrOfPins-1]) 
+            {
+                angle = i/nrOfPins*360+180/nrOfPins;
+                rotate([0,0,angle]) translate([offsetPinRadial,0,-offsetPinZ-eps]) drawCampheredCylinder(offsetPinZ-ho2-ho1+eps,roExternalPin,eps,100);
+            }            
         }
     }
 }

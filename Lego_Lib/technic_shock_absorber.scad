@@ -1,8 +1,19 @@
 eps = 0.001;
 
 
+include <../lib/springs.scad>
+
 include <dimensions.scad>
 include <utils.scad>
+
+
+// exported parts
+_ShockAbsorberTop = 0;
+_ShockAbsorberTopHalf = 1;
+_ShockAbsorberBottom = 2;
+_ShockAbsorberBottomHalf = 3;
+_ShockAbsorberSpring = 4;
+selectedPart = _ShockAbsorberBottom;
 
 
 
@@ -10,19 +21,13 @@ addScrewHole = false;
 
 rScrewHole = 3.0/2/2.5;
 
-
-
-// printability corrections; values should be zero for real object dimensions 
-PRINTABLE = 1;
-correction_ra1 = PRINTABLE ? 0.05 : 0.0;
-correction_ra2 = PRINTABLE ? 0.0 : 0.0;
-correction_offset_ra2 = PRINTABLE ? 0.10 : 0.0;
+modelScaleSpring = 2.5;
 
 
 // axle hole
-ra1 = (4.8/2 + correction_ra1);
-ra2 = (1.0/2 + correction_ra2);
-offset_ra2 = (1.4 + correction_offset_ra2);
+ra1 = 4.6/2; //4.8/2;
+ra2 = 1.0/2;
+offset_ra2 = 1.4;
 
 
 axleLengthBase = 20.0;
@@ -34,43 +39,87 @@ ho1 = unit_size;
 ho2 = 23.2;
 
 ri1 = 3.2;
-ri2 = 2.4;
+ri2 = 2.6; //2.4;
 ri3 = 3.2;
 hi1 = 0.8;
 hi2 = 0.8;
 
 
-tHook = 1.6;
-
-wSlotHole = 1.6;
+wSlotHole = 1.8;
 lSlotHole = 11.2;
 
-rSpringCoil = 0.4;
-rSpring = (ra1+ri3)/2;
+tHook = 1.5;
+
+
+rSpringCoil = 0.45/modelScaleSpring;
+rSpring = (14.0/2)/modelScaleSpring-rSpringCoil;
 lSpring = 17.6;
 nrOfCoils = 7;
 
 
+roCircle = 2.1;
+riCircle = 0.5; //1.2;
+
+
+
+module drawHollowCircleFlat()
+{
+    difference()
+    {
+        union()
+        {
+            circle(roCircle,$fn=250);
+        }
+        union()
+        {
+            circle(riCircle,$fn=250);
+        }        
+    }
+}
+
+
+module drawHollowQuarterCircleFlat()
+{
+    smallSize = 3*roCircle;
+    difference()
+    {
+        union()
+        {
+            drawHollowCircleFlat();
+        }
+        union()
+        {
+            translate([0,-smallSize/2]) square([smallSize,smallSize]);
+            translate([-smallSize/2,-smallSize]) square([smallSize,smallSize]);
+        }        
+    }
+}
+
+
 module drawHookFlat()
 {
-    x1 = -0.4;
+    x1 = -riCircle;
     y1 = 0.0;
-    x2 = x1;
-    y2 = -4.8;
-    x3 = -1.2;
+    x2 = -1.2;
+    y2 = -8.0;
+    x3 = -1.6;
     y3 = -8.0;
-    x4 = -1.6;
-    y4 = -8.0;
-    x5 = -3.6;
-    y5 = -6.0;
-    x6 = x5;
-    y6 = y2;
-    x7 = -2.276;
-    y7 = y2;
-    x8 = x7;
-    y8 = 0.0;
+    x4 = -ro2+0.2;
+    y4 = -6.0;
+    x5 = x4;
+    y5 = -4.8;
+    x6 = -roCircle;
+    y6 = y5;
+    x7 = x6;
+    y7 = 0.0;
         
-    polygon([[x1,y1],[x2,y2],[x3,y3],[x4,y4],[x5,y5],[x6,y6],[x7,y7],[x8,y8],[x1,y1]]);
+    polygon([[x1,y1],[x2,y2],[x3,y3],[x4,y4],[x5,y5],[x6,y6],[x7,y7],[x1,y1]]);
+    smallSize = 3*roCircle;
+    difference()
+    {
+        translate([0,-riCircle]) drawHollowQuarterCircleFlat();
+        translate([-smallSize/2,0]) square([smallSize,smallSize]);
+    }
 }
 
 
@@ -134,7 +183,7 @@ module drawAxle()
 
 module drawBearing()
 {
-    cylinder(ho1,ro1,ro1,$fn=100,true);
+    cylinder(ho1,ro1,ro1,$fn=250,true);
 }    
 
 
@@ -145,7 +194,7 @@ module drawShockAbsorberTop()
         union()
         {
             drawBearing();
-            rotate([90,0,0]) cylinder(ro1,ro2,ro2,$fn=100);
+            rotate([90,0,0]) cylinder(ro1,ro2,ro2,$fn=250);
             translate([0,-ro1,0]) rotate([90,0,0]) drawAxle();
             translate([0,-ro1-axleLengthBase,0]) rotate([0,90,0]) drawHook();
             mirror([0,0,1]) translate([0,-ro1-axleLengthBase,0]) rotate([0,90,0]) drawHook();
@@ -185,15 +234,15 @@ module drawShockAbsorberBottom()
             drawBearing();
             difference()
             {
-                rotate([-90,0,0]) cylinder(ho2,ro3,ro3,$fn=100);
+                rotate([-90,0,0]) cylinder(ho2,ro3,ro3,$fn=250);
                 translate([-wSlotHole/2,ro1,-smallSize/2]) cube([wSlotHole,lSlotHole,smallSize]);
             }
         }
         union()
         {
             rotate([90,0,0]) drawPinHole(true);
-            translate([0,ro1,0]) rotate([-90,0,0]) cylinder(smallSize,ri2,ri2,$fn=100);
-            translate([0,ho2-hi2,0]) rotate([-90,0,0]) cylinder(hi2+eps,ri3,ri3,$fn=100);
+            translate([0,ro1,0]) rotate([-90,0,0]) cylinder(smallSize,ri2,ri2,$fn=250);
+            translate([0,ho2-hi2,0]) rotate([-90,0,0]) cylinder(hi2+eps,ri3,ri3,$fn=250);
         }
     }
 }
@@ -216,13 +265,14 @@ module drawShockAbsorberBottomHalf()
 }
 
 
-module drawSpring()
+module drawShockAbsorberSpring()
 {
     difference()
 	{
         union()
         {
-            linear_extrude(height=lSpring,center=false,convexity=10,twist=360*nrOfCoils,$fn=100) translate([rSpring,0,0]) circle(r=rSpringCoil,$fn=100);
+            //linear_extrude(height=lSpring,center=false,convexity=10,twist=360*nrOfCoils,$fn=250) translate([rSpring,0,0]) circle(r=rSpringCoil,$fn=250);
+            spring(r=rSpringCoil,R=rSpring,H=lSpring,windings=nrOfCoils,start=true,end=true,center=false,$fn=25);
         }
         union()
         {
@@ -231,15 +281,15 @@ module drawSpring()
 }
 
 
-module drawShockAbsorber()
+module drawShockAbsorberAssembly()
 {
     difference()
 	{
         union()
         {
-            drawShockAbsorberTop();
-            translate([0,-shockAbsorberHoleDistance,0]) drawShockAbsorberBottom();
-            translate([0,-ro1,0]) rotate([90,0,0]) drawSpring();
+            color("grey") drawShockAbsorberTop();
+            color("blue") translate([0,-shockAbsorberHoleDistance,0]) drawShockAbsorberBottom();
+            color("orange") translate([0,-ro1,0]) rotate([90,0,0]) drawShockAbsorberSpring();
         }
         union()
         {
@@ -250,19 +300,19 @@ module drawShockAbsorber()
 
 
 // tests
+//drawHollowCircleFlat();
+//drawHollowQuarterCircleFlat();
 //drawHookFlat();
 //drawHook();
 //drawAxle();
 //drawBearing();
 //drawPinHole(true);
-drawShockAbsorberTopHalf();
-//drawShockAbsorberBottomHalf();
-
+//drawShockAbsorberAssembly();
 
 
 // parts
-//drawSpring();
-//drawShockAbsorberTop();
-//drawShockAbsorberBottom();
-//drawShockAbsorber();
-
+if (selectedPart==_ShockAbsorberTop) drawShockAbsorberTop();
+if (selectedPart==_ShockAbsorberTopHalf) drawShockAbsorberTopHalf();
+if (selectedPart==_ShockAbsorberBottom) drawShockAbsorberBottom();
+if (selectedPart==_ShockAbsorberBottomHalf) drawShockAbsorberBottomHalf();
+if (selectedPart==_ShockAbsorberSpring) drawShockAbsorberSpring();

@@ -5,6 +5,7 @@ modelScale = 1.0;
 
 addScrewHole = false;
 addRib = true;
+
 rScrewHole = 3.0/2/2.5;
 rScrewHead = 5.6/2/2.5;
 rNut = 6.0/2/2.5;
@@ -36,20 +37,31 @@ offsetSlotHole = 3.0*modelScale;
 
 
 // rib
-rRib1 = 1.2/2*modelScale;
+rRib1 = 1.7/2*modelScale;
 rRib2 = 2.4/2*modelScale;
-lRib = hPin1;
+distRibsY = 2.5;
+lRib = hPin1+0.84;
 
 
+
+
+module drawCone()
+{
+    hull()
+    {
+        translate([0,0,lRib-rRib1]) sphere(rRib1,$fn=100*modelScale);
+        translate([0,0,-eps]) cylinder(eps,rRib2,rRib2,$fn=100*modelScale);
+    }    
+}    
 
 
 module drawRib()
 {
     hull()
     {
-        translate([0,0,lRib-rRib1]) sphere(rRib1,$fn=50*modelScale);
-        translate([0,0,-eps]) cylinder(eps,rRib2,rRib2,$fn=50*modelScale);
-    }    
+        translate([0,-distRibsY/2,0]) drawCone();
+        translate([0,distRibsY/2,0]) drawCone();
+    }
 }    
 
 
@@ -74,8 +86,26 @@ module drawSlotHole()
 }    
 
 
+module drawHollowCylinder(prmH,prmRi)
+{
+    smallSize = 3*prmH;
+    difference()
+    {
+        union()
+        {
+            cylinder(smallSize,smallSize,smallSize,$fn=200*modelScale,true);                    
+        }
+        union()
+        {        
+            cylinder(smallSize+2*eps,rPin1,rPin1,$fn=200*modelScale,true);
+        }
+    }
+}
+
+
 module drawPinHalf(prmIsTop)
 {
+    smallSize = 3*rMid;
     difference()
 	{
         union()
@@ -101,11 +131,7 @@ module drawPinHalf(prmIsTop)
             }
             union()
             {
-                difference()
-                {
-                    translate([0,0,correction_hPinInternal/2-3*eps]) cylinder(hPin1-correction_hPinInternal+6*eps,rMid+eps,rMid+eps,$fn=200*modelScale);                    
-                    translate([0,0,correction_hPinInternal/2-4*eps]) cylinder(hPin1-correction_hPinInternal+8*eps,rPin1,rPin1,$fn=200*modelScale);
-                }
+                drawHollowCylinder(hPin1,rPin1);
                 if (addScrewHole)
                 {
                     fn = prmIsTop ? 6 : 100*modelScale;
@@ -145,7 +171,9 @@ module drawPin()
 
 
 // tests
+//drawRib();
 //drawSlotHole();
+//drawHollowCylinder(hPin1,rPin1);
 //drawPinHalf();
 
 
