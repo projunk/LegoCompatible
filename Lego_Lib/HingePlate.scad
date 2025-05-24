@@ -29,7 +29,7 @@ fingerClearance = 0.0;//0.1;
 wFinger = (width-(nrOfFingers-1)*fingerClearance)/nrOfFingers;
 rBearingSphere = hPlate;
 offsetBearingSphere = 0.9*rBearingSphere;
-rBearingSphereCup = 0.95*rBearingSphere;
+rBearingSphereCup = 0.90*rBearingSphere;
 offsetBearingSphereCup = 0.9*rBearingSphereCup;
 
 
