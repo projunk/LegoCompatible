@@ -1,78 +1,37 @@
 eps = 0.001;
 
-modelScale = 1.0;
+
+include <dimensions.scad>
+include <utils.scad>
+
+
+// exported parts
+_HingePlate2Fingers = 0;
+_HingePlate3Fingers = 1;
+selectedPart = _HingePlate2Fingers;
+
 
 
 nr_length_units = 2;
 nr_width_units = 1;
-isSolidPin2 = true;
+echo("nr_length_units", nr_length_units);
+echo("nr_width_units", nr_width_units);
+isHollowExternalPin = false;
 addInnerWalls = true;
 
 
-unit_size = 7.8*modelScale;
-pitch = 8.0*modelScale;
-
-h1 = 3.2*modelScale; // height
-h2 = h1-1.0*modelScale; // inner height
-
-// pin1
-r1 = 6.5/2*modelScale;
-r2 = 4.8/2*modelScale;
-
-// pin2
-r3 = 3.2/2*modelScale;
-r4 = 1.6/2*modelScale;
-
-
-t1 = 1.5*modelScale; // wall thickness
-t2 = 1.2*modelScale; // inner wall thickness
-
-length = nr_length_units*unit_size + (nr_length_units - 1) * (pitch - unit_size);
-width = nr_width_units*unit_size + (nr_width_units - 1) * (pitch - unit_size);
-
-
-h_pin = 1.7*modelScale;
-r_pin = 4.8/2*modelScale;
+length = getSize(nr_length_units);
+width = getSize(nr_width_units);
 
 
 nrOfFingers = 5;
-fingerClearance = 0.0;//0.1*modelScale;
+fingerClearance = 0.0;//0.1;
 wFinger = (width-(nrOfFingers-1)*fingerClearance)/nrOfFingers;
-rBearingSphere = h1;
+rBearingSphere = hPlate;
 offsetBearingSphere = 0.9*rBearingSphere;
+rBearingSphereCup = 0.95*rBearingSphere;
+offsetBearingSphereCup = 0.9*rBearingSphereCup;
 
-
-
-module drawExternalPin()
-{
-	translate([0,0,h1-eps]) cylinder(h_pin+eps,r_pin,r_pin,$fn=100*modelScale);
-}
-
-
-module drawInternalPin1()
-{
-	difference()
-	{
-		translate([0,0,-eps]) cylinder(h1+eps,r1,r1,$fn=100*modelScale);
-		translate([0,0,-2*eps]) cylinder(h1+3*eps,r2,r2,$fn=100*modelScale);
-	}
-}
-
-
-module drawInternalPin2Hollow()
-{
-	difference()
-	{
-		translate([0,0,-eps]) cylinder(h1+eps,r3,r3,$fn=100*modelScale);
-		translate([0,0,-2*eps]) cylinder(h1+3*eps,r4,r4,$fn=100*modelScale);
-	}
-}
-
-
-module drawInternalPin2Solid()
-{
-	translate([0,0,-eps]) cylinder(h1+eps,r3,r3,$fn=100*modelScale);
-}
 
 
 module drawInnerWallsX()
@@ -83,10 +42,78 @@ module drawInnerWallsX()
         {
             if (nr_length_units > 1)
             {
-                translate([x*pitch-(pitch-unit_size)/2-t2/2,t1-eps,0]) cube([t2,width-2*t1+2*eps,h2+eps]);
+                difference()
+                {
+                    union()
+                    {
+                        translate([x*pitch-(pitch-unit_size)/2-tInnerWall/2,tWall-eps,0]) cube([tInnerWall,width-2*tWall+2*eps,hInnerPlate+eps]);
+                    }
+                    union()
+                    {
+                        if (nr_width_units > 1)
+                        {
+                            for (y = [1:nr_width_units-1]) 
+                            {
+                                translate([x*pitch-(pitch-unit_size)/2,y*pitch-(pitch-unit_size)/2,-eps]) cylinder(hPlate+2*eps,riInternalPin,riInternalPin,$fn=100);
+                            }
+                        }
+                    }
+                }
             }
         }
     }
+}
+
+
+module drawInternalPins()
+{
+	if ((nr_length_units > 1) && (nr_width_units > 1)) 
+	{
+		for (x = [1:nr_length_units-1])
+		{
+			for (y = [1:nr_width_units-1]) 
+			{	
+				translate([x*pitch-(pitch-unit_size)/2,y*pitch-(pitch-unit_size)/2,0]) drawInternalPin(hInnerPlate);
+			}
+		}
+	}
+
+	if ((nr_width_units == 1) && (nr_length_units > 1))
+	{
+		for (x = [1:nr_length_units-1])
+		{
+			translate([x*pitch-(pitch-unit_size)/2,width/2,0]) drawInternalPinSmall(hInnerPlate);
+		}
+	}
+
+	if ((nr_length_units == 1) && (nr_width_units > 1))
+	{
+		for (y = [1:nr_width_units-1])
+		{
+			translate([length/2,y*pitch-(pitch-unit_size)/2,0]) drawInternalSmall(hInnerPlate);
+		}
+	}
+}
+
+
+module drawExternalPins()
+{
+	for (x = [1:nr_length_units])
+	{
+		for (y = [1:nr_width_units])
+		{	
+            difference()
+            {
+                union()
+                {
+                    translate([x*pitch-pitch+unit_size/2,y*pitch-pitch+unit_size/2,hPlate]) drawExternalPin(isHollowExternalPin);
+                }
+                union()
+                {
+                }
+            }
+		}
+	}
 }
 
 
@@ -96,67 +123,20 @@ module drawPlate()
 	{
 		union()
 		{	
-			cube([length,width,h1]);
+			cube([length,width,hPlate]);
 		}
 		union()
 		{	
-			translate([t1,t1,-eps]) cube([length-2*t1,width-2*t1,h2+eps]);
-		}
-	}
-
-	for (x = [1:nr_length_units])
-	{
-		for (y = [1:nr_width_units])
-		{	
-			translate([x*pitch-pitch+unit_size/2,y*pitch-pitch+unit_size/2,0]) drawExternalPin();
-		}
-	}
-
-	if ((nr_length_units > 1) && (nr_width_units > 1)) 
-	{
-		for (x = [1:nr_length_units-1])
-		{
-			for (y = [1:nr_width_units-1]) 
-			{	
-				translate([x*pitch-(pitch-unit_size)/2,y*pitch-(pitch-unit_size)/2,0]) drawInternalPin1();
-			}
-		}
-	}
-
-	if ((nr_width_units == 1) && (nr_length_units > 1))
-	{
-		for (x = [1:nr_length_units-1])
-		{
-            if (isSolidPin2)
-            {
-                translate([x*pitch-(pitch-unit_size)/2,width/2,0]) drawInternalPin2Solid();
-            }
-            else
-            {
-                translate([x*pitch-(pitch-unit_size)/2,width/2,0]) drawInternalPin2Hollow();
-            }
-		}
-	}
-
-	if ((nr_length_units == 1) && (nr_width_units > 1))
-	{
-		for (y = [1:nr_width_units-1])
-		{
-            if (isSolidPin2)
-            {
-                translate([length/2,y*pitch-(pitch-unit_size)/2,0]) drawInternalPin2Solid();
-            }
-            else
-            {      
-                translate([length/2,y*pitch-(pitch-unit_size)/2,0]) drawInternalPin2Hollow();
-            }
+			translate([tWall,tWall,-eps]) cube([length-2*tWall,width-2*tWall,hInnerPlate+eps]);
 		}
 	}
     
     if (addInnerWalls)
     {
         drawInnerWallsX();
-    }    
+    }
+	drawInternalPins();
+	drawExternalPins();    
 }
 
 
@@ -164,8 +144,8 @@ module drawHingeFinger()
 {
     hull()
     {
-        translate([pitch/2,0,0]) cube([eps,wFinger,h1]);
-        translate([0,0,h1/2]) rotate([-90,0,0]) cylinder(wFinger,h1/2,h1/2,$fn=100*modelScale);
+        translate([pitch/2,0,0]) cube([eps,wFinger,hPlate]);
+        translate([0,0,hPlate/2]) rotate([-90,0,0]) cylinder(wFinger,hPlate/2,hPlate/2,$fn=100);
     }
 }
 
@@ -180,8 +160,8 @@ module drawHinge2Finger()
         }
         union()
 		{	
-            translate([0,-offsetBearingSphere,h1/2]) sphere(rBearingSphere,$fn=250*modelScale);
-            translate([0,wFinger+offsetBearingSphere,h1/2]) sphere(rBearingSphere,$fn=250*modelScale);   
+            translate([0,-offsetBearingSphereCup,hPlate/2]) sphere(rBearingSphereCup,$fn=250);
+            translate([0,wFinger+offsetBearingSphereCup,hPlate/2]) sphere(rBearingSphereCup,$fn=250);   
 		}
     }
 }
@@ -198,16 +178,16 @@ module drawHinge3Finger(prmAddSphere1,prmAddSphere2)
             {
                 difference()
                 {
-                    translate([0,offsetBearingSphere,h1/2]) sphere(rBearingSphere,$fn=250*modelScale);
-                    translate([-rBearingSphere,eps,-rBearingSphere+h1/2]) cube([2*rBearingSphere,2*rBearingSphere,2*rBearingSphere]);
+                    translate([0,offsetBearingSphere,hPlate/2]) sphere(rBearingSphere,$fn=250);
+                    translate([-rBearingSphere,eps,-rBearingSphere+hPlate/2]) cube([2*rBearingSphere,2*rBearingSphere,2*rBearingSphere]);
                 }
             }
             if (prmAddSphere2)
             {
                 difference()
                 {
-                    translate([0,wFinger-offsetBearingSphere,h1/2]) sphere(rBearingSphere,$fn=250*modelScale);
-                    translate([-rBearingSphere,wFinger-2*rBearingSphere-eps,-rBearingSphere+h1/2]) cube([2*rBearingSphere,2*rBearingSphere,2*rBearingSphere]);
+                    translate([0,wFinger-offsetBearingSphere,hPlate/2]) sphere(rBearingSphere,$fn=250);
+                    translate([-rBearingSphere,wFinger-2*rBearingSphere-eps,-rBearingSphere+hPlate/2]) cube([2*rBearingSphere,2*rBearingSphere,2*rBearingSphere]);
                 }
             }            
         }
@@ -225,7 +205,7 @@ module drawHingePlate2Fingers()
 		union()
 		{	
 			translate([pitch/2,0,0]) drawPlate();
-            translate([pitch/2,0,h1/2]) rotate([-90,0,0]) cylinder(width,h1/2,h1/2,$fn=250*modelScale);
+            translate([pitch/2,0,hPlate/2]) rotate([-90,0,0]) cylinder(width,hPlate/2,hPlate/2,$fn=250);
             
             translate([0,wFinger+fingerClearance,0]) drawHinge2Finger();
             translate([0,3*wFinger+3*fingerClearance,0]) drawHinge2Finger();
@@ -244,7 +224,7 @@ module drawHingePlate3Fingers()
 		union()
 		{	
 			translate([pitch/2,0,0]) drawPlate();
-            translate([pitch/2,0,h1/2]) rotate([-90,0,0]) cylinder(width,h1/2,h1/2,$fn=100*modelScale);
+            translate([pitch/2,0,hPlate/2]) rotate([-90,0,0]) cylinder(width,hPlate/2,hPlate/2,$fn=100);
             
             translate([0,0,0]) drawHinge3Finger(false,true);
             translate([0,width/2-wFinger/2,0]) drawHinge3Finger(true,true);
@@ -273,8 +253,6 @@ module drawAssembly()
 
 
 // parts
-drawHingePlate2Fingers();
-//drawHingePlate3Fingers();
-
-
+if (selectedPart==_HingePlate2Fingers) drawHingePlate2Fingers();
+if (selectedPart==_HingePlate3Fingers) drawHingePlate3Fingers();
 
